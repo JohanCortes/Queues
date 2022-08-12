@@ -80,7 +80,8 @@ class Cola():
         res['telp'] = [np.array(t_e_l).mean(), 'min',
                        'Tiempo entre llegada promedio']
         res['mul'] = [m_l[-1]/60, 'horas', 'Momento ultima llegada']
-        res['tius'] = [t_i_s[-1]/60, 'horas', 'Tiempo inicio del ultimo servicio']
+        res['tius'] = [t_i_s[-1]/60, 'horas',
+                       'Tiempo inicio del ultimo servicio']
         res['tsp'] = [np.array(t_s).mean(), 'min',
                       'Tiempo de servicio promedio']
         res['ttus'] = [t_t_s[i]/60, 'horas',
@@ -91,5 +92,4 @@ class Cola():
         res['teo'] = [np.array(t_s).sum()/60, 'horas', 'Tiempo en operacion']
         res['po'] = [res['teo'][0]/res['ttus']
                      [0], '%', 'Porcentaje de operacion']
-        #print("\n---------\n", res)
         return res

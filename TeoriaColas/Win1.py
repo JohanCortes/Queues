@@ -3,7 +3,6 @@ from tkinter import ttk
 from tkinter import *
 from tkinter.font import BOLD
 import asyncio
-from tracemalloc import Statistic
 from Colas import Cola
 from Poblacion import Poblacion
 from Win2 import Ventana2
@@ -75,7 +74,6 @@ class Ventana(tk.Frame):
         self.lista = tk.Listbox(self, font=(
             "Calibri", 13), bg="white", border=2, yscrollcommand=scrollbar.set)
         self.lista.place(relx=0.07, rely=0.15, relwidth=0.185, relheight=0.7)
-        #self.lista.insert(tk.END, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13","1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13")
         scrollbar.config(command=self.lista.yview)
         scrollbar.place(relx=0.255, rely=0.15, relheight=0.7)
 
@@ -119,8 +117,9 @@ class Ventana(tk.Frame):
             "Calibri", 13), bg="white")
         self.IIC.place(relx=0.8, rely=0.60, relwidth=0.09)
         self.tdist = tk.Label(self.container, text="Tipo de distribución: ", font=(
-            "Calibri", 14), bg=self.bcolor)
+            "Calibri", 14), bg=self.bcolor, fg="blue", cursor="hand2")
         self.tdist.place(relx=0.09, rely=0.69)
+        self.tdist.bind("<Button-1>", lambda e: self.clicktdist())
         self.corr = tk.Label(self.container, text="Correlación = ", font=(
             "Calibri", 14), bg=self.bcolor)
         self.corr.place(relx=0.09, rely=0.78)
@@ -162,8 +161,10 @@ class Ventana(tk.Frame):
             ic = ''
             for i in self.IIC.get():
                 ic += chr(int(i)+8320)
-            self.poblacion = Poblacion(list(map(lambda x: x.statistic(), self.colas)), self.colas.__len__())
-            statistic = self.poblacion.cal(keys[self.combo.get()], float(self.IIC.get())/100)
+            self.poblacion = Poblacion(
+                list(map(lambda x: x.statistic(), self.colas)), self.colas.__len__())
+            statistic = self.poblacion.cal(
+                keys[self.combo.get()], float(self.IIC.get())/100)
             units = self.colas[0].statistic()[keys[self.combo.get()]][1]
             self.min.config(text="Minimo = "+str(statistic[0])+" "+units)
             self.max.config(text="Maximo = "+str(statistic[1])+" "+units)
@@ -175,8 +176,13 @@ class Ventana(tk.Frame):
             self.corr.config(text="Correlación = "+str(statistic[7]))
 
     def click4(self):
-        if self.poblacion is not None:
+        if self.poblacion is not None and self.colas.__len__() > 0:
             self.poblacion.graph()
+
+    def clicktdist(self):
+        if self.poblacion is not None and self.colas.__len__() > 0:
+            self.poblacion.graph_tdist()
+
 
 root = tk.Tk()
 app = Ventana(root)

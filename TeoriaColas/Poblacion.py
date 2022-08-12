@@ -1,7 +1,7 @@
-from statistics import NormalDist, correlation, pstdev, pvariance
-from turtle import color
+from statistics import NormalDist, correlation, pstdev, pvariance, quantiles
 import numpy as np
 import matplotlib.pyplot as plt
+from statsmodels.graphics.gofplots import qqplot
 
 
 class Poblacion():
@@ -20,33 +20,28 @@ class Poblacion():
         max = np.max(d)
         des = pstdev(d)
         var = pvariance(d)
-        #print('σ =', des)
-        #print('σ² =', var)
         dist = NormalDist(m, des)
         i1 = (1-interval)/2
         i2 = (1-interval)/2+interval
-        #print('i1 =', i1, ' \ti2 =', i2)
         IC = [dist.inv_cdf(i1), dist.inv_cdf(i2)]
-        #print('IC =', IC)
-
-        poisson = np.random.poisson(m, self.n)
-        normal = np.random.normal(m, des, self.n)
-        expo = np.random.exponential(1/m, self.n)
-        poisson = correlation(np.sort(d), np.sort(poisson))
-        normal = correlation(np.sort(d), np.sort(normal))
-        expo = correlation(np.sort(d), np.sort(expo))
-        corr = np.max([poisson, normal, expo])
-
         tdist = ''
-        if poisson >= normal and poisson >= expo:
-            tdist = 'Poisson'
-        elif normal >= poisson and normal >= expo:
-            tdist = 'Normal'
-        elif expo >= poisson and expo >= normal:
-            tdist = 'Exponencial'
+        corr = 0
 
-        #print('Distribución:', tdist)
-        #print('Correlación:', corr)
+        qu = [q for q in quantiles(d, n=100)]
+        dist = {'Normal': [q for q in quantiles(np.random.normal(m, des, self.n), n=100)],
+                'Exponencial': [q for q in quantiles(np.random.exponential(1/m, self.n), n=100)],
+                "Weibull": [q for q in quantiles(np.random.weibull(m, self.n), n=100)],
+                "Gamma": [q for q in quantiles(np.random.gamma(m, des, self.n), n=100)],
+                "Lognormal": [q for q in quantiles(np.random.lognormal(m, des, self.n), n=100)],
+                "Beta": [q for q in quantiles(np.random.beta(m, des, self.n), n=100)],
+                "Chi-cuadrado": [q for q in quantiles(np.random.chisquare(m, self.n), n=100)]}
+
+        for k in dist:
+            c = correlation(qu, dist[k])
+            if(c > corr):
+                corr = c
+                tdist = k
+
         self.key = key
         self.unidades = self.data[0][key][1]
         self.opcion = self.data[0][key][2]
@@ -75,8 +70,6 @@ class Poblacion():
                     break
 
         cont = list(map(lambda x: x/len(d), cont))
-        # print(cont)
-        # print('IC=',self.IC,'\ncont=',cont,'\nd=',d,'\nf=',f)
         plt.subplot(2, 1, 1)
         plt.plot(f, cont, 'r')
         """ plt.fill_between(f,cont,
@@ -84,7 +77,8 @@ class Poblacion():
         #plt.fill_betweenx([0,max(cont)], self.IC[0],self.IC[1],  color='blue', alpha=0.2)
         plt.axvline(self.IC[0], color='blue', linewidth=1, linestyle='dashed')
         plt.axvline(self.IC[1], color='blue', linewidth=1, linestyle='dashed')
-        plt.legend(["Distribución"])
+        plt.legend(["Distribución", 'IC1 = '+str(self.IC[0])[0:-8],
+                   'IC2 = ' + str(self.IC[1])[0:-8]])
         plt.ylim(0)
         plt.grid()
         plt.ylabel('Probabilidad')
@@ -107,4 +101,8 @@ class Poblacion():
         plt.xlabel('Iteración')
         plt.legend(['μ = '+str(self.m)[0:-8], 'IC1 = '+str(self.IC[0])[0:-8],
                    'IC2 = ' + str(self.IC[1])[0:-8]])
+        plt.show()
+
+    def graph_tdist(self):
+        qqplot(np.array(self.d), line='s')
         plt.show()
